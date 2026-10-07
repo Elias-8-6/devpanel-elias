@@ -37,7 +37,11 @@ Al primer arranque, el seed crea automáticamente un administrador y 50 usuarios
 Se configuran con `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` en `.env`. Los usuarios de demostración tienen una contraseña aleatoria que no se revela: sirven para poblar la tabla, no para iniciar sesión.
 
 ## Decisiones técnicas
-_Pendiente._
+- **SOA dentro de un monolito modular:** servicios `auth`, `users`, `metrics` y `health` con contratos REST en `/api/v1`. Se comunican entre sí solo a través de sus servicios exportados.
+- **Sesión:** access token JWT de 30 min y refresh token de 7 días, ambos en cookies `HttpOnly` + `SameSite=Strict`. El refresh se guarda en BD solo como hash SHA-256, es de un solo uso y reusarlo revoca la sesión completa.
+- **Seguro por defecto:** guard JWT global (las rutas públicas se marcan con `@Public()`), validación estricta de entradas, rate limit (login: 5/min) y formato de error uniforme `{ error: { code, message } }`.
 
 ## Limitaciones conocidas
-_Pendiente._
+- El rate limit se guarda en memoria y se aplica por IP. Detrás del proxy de Vite todos los clientes comparten la IP del proxy; en producción haría falta `trust proxy` y un almacenamiento compartido (Redis).
+- Si dos pestañas refrescan la sesión con el mismo token al mismo tiempo, la detección de reuso cierra la sesión. El frontend debe serializar el refresh.
+- Las tablas se crean con `synchronize` de TypeORM (solo desarrollo); no hay migraciones.

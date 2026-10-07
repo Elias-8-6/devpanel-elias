@@ -16,7 +16,10 @@ export const envValidationSchema = Joi.object({
   DB_SYNCHRONIZE: Joi.boolean().default(false),
 
   JWT_SECRET: Joi.string().min(32).required(),
-  JWT_EXPIRES_IN: Joi.string().default('30m'),
+  JWT_ACCESS_EXPIRES_MINUTES: Joi.number().integer().min(1).max(60).default(30),
+  REFRESH_TOKEN_EXPIRES_DAYS: Joi.number().integer().min(1).max(30).default(7),
+  // Must be true whenever the app is served over HTTPS.
+  COOKIE_SECURE: Joi.boolean().default(false),
 
   SEED_ADMIN_EMAIL: Joi.string().email({ tlds: false }).required(),
   SEED_ADMIN_PASSWORD: Joi.string().min(8).required(),

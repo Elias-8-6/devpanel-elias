@@ -16,7 +16,9 @@ Mini panel de administración (prueba técnica, 2 horas). El plan completo y los
 
 ## Reglas de seguridad (no negociables)
 - Passwords con `bcryptjs` (cost ≥ 10). Nunca devolver `passwordHash`; las respuestas usan DTOs de salida.
-- JWT en cookie `HttpOnly` + `SameSite=Strict` (+ `Secure` en producción). **Nunca** en `localStorage`.
+- Access token JWT HS256 de **30 min** y refresh token opaco de **7 días**, ambos en cookies `HttpOnly` + `SameSite=Strict` (+ `Secure` en producción). **Nunca** en `localStorage` ni en el body de la respuesta.
+- El refresh token se guarda en `refresh_tokens` **solo como hash SHA-256**. Es de un solo uso (rotación); reusar uno revocado revoca toda su familia.
+- Guard JWT global: toda ruta nueva es privada salvo que lleve `@Public()`.
 - Login: mensaje genérico "Credenciales inválidas" y `@Throttle` estricto.
 - Toda entrada pasa por DTOs con `class-validator`; `pageSize` con tope (máx. 50).
 - Búsqueda solo con parámetros (`ILike` / query builder con parámetros). Nunca concatenar SQL.

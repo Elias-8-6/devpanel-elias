@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 
 // Gateway-level cross-cutting concerns. Shared by main.ts and the e2e tests
 // so both exercise the exact same HTTP pipeline.
@@ -30,5 +31,6 @@ export function configureApp(app: INestApplication): void {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.enableShutdownHooks();
 }

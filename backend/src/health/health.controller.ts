@@ -1,5 +1,6 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { Public } from '../auth/decorators/public.decorator.js';
 
 export interface HealthStatus {
   status: 'ok';
@@ -10,6 +11,7 @@ export interface HealthStatus {
 export class HealthController {
   constructor(private readonly dataSource: DataSource) {}
 
+  @Public()
   @Get()
   async check(): Promise<HealthStatus> {
     try {

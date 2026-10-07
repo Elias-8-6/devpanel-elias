@@ -4,11 +4,11 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
+import { BCRYPT_COST } from '../../common/security.constants.js';
 import { User } from '../user.entity.js';
 import { UserRole, UserStatus } from '../user.enums.js';
 import { UsersService } from '../users.service.js';
 
-export const BCRYPT_COST = 10;
 const DEMO_USERS = 50;
 const DAY_MS = 24 * 60 * 60 * 1000;
 

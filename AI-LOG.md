@@ -23,10 +23,17 @@ _Pendiente de justificar (React + NestJS + PostgreSQL + Docker)._
 - **Resultado:** entidad `User`, `UsersService` exportado como contrato SOA, `GET /api/v1/users` con búsqueda, filtros y paginación, y un seed idempotente.
 - **Qué hice con eso:** _pendiente_
 
+### 3.4 Módulo de autenticación
+- **Prompt:** "sigue con el módulo auth, aquí ten presente que usaremos el access token con una duración de 30 minutos por seguridad y el refresh token lo guardado en la base de datos será vigente por 7 días"
+- **Resultado:** JWT de 30 min y refresh opaco de 7 días en cookies HttpOnly; tabla `refresh_tokens` que guarda solo el hash SHA-256; rotación con detección de reuso; guard global con `@Public()`; filtro de errores uniforme; 6 tests e2e del flujo.
+- **Qué hice con eso:** el refresh token persistido en BD fue decisión mía; el plan inicial de la IA lo había dejado fuera del alcance. _Completar._
+
 ## 4. Output de la IA rechazado o modificado
 - **`bcrypt` → `bcryptjs`:** npm 11 bloqueó los scripts de instalación nativos de `bcrypt`, que además fallaría al compilar en Alpine. Se cambió por la versión JS pura.
-- **Regex de acentos del seed:** el regex `[̀-ͯ]` terminó guardado como caracteres combinantes invisibles. Funcionaba, pero no se podía leer ni revisar. Se reemplazó por `/\p{M}/gu`. El primer intento de corregirlo con `sed` perdió la barra invertida y rompió el build (el linter lo detectó).
+- **Regex de acentos del seed:** el regex con el rango de diacríticos U+0300–U+036F (escrito con escapes `\u`) terminó guardado como caracteres combinantes invisibles. Funcionaba, pero no se podía leer ni revisar. Se reemplazó por `/\p{M}/gu`. El primer intento de corregirlo con `sed` perdió la barra invertida y rompió el build (el linter lo detectó).
 - **`rows.map(UserResponseDto.fromEntity)`:** el linter lo marcó como método sin enlazar (`unbound-method`); se cambió por una arrow function.
+- **`#` en `.env` (bug detectado por los tests e2e):** `SEED_ADMIN_PASSWORD=DevPanel#2026` sin comillas lo lee completo Docker Compose, pero dotenv lo corta en `DevPanel` porque trata `#` como comentario. Corriendo fuera de Docker, el admin habría quedado con otra contraseña. Se citó el valor y se verificó que ambos parsers lean lo mismo.
+- **Comentario falso sobre el orden de los guards:** la IA escribió que el ThrottlerGuard "corre antes" que el guard JWT. Nest no garantiza ese orden entre `APP_GUARD` de módulos distintos, así que se eliminó la afirmación en lugar de dejar documentación incorrecta.
 - _Pendiente: agregar los rechazos propios del desarrollador._
 
 ## 5. % de código IA vs propio

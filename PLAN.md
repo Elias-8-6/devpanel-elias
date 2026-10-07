@@ -51,7 +51,7 @@
 | ID | Control | Mitiga |
 |----|---------|--------|
 | RS-01 | Passwords con hash adaptativo (bcrypt o argon2), nunca en texto plano | Robo de la BD |
-| RS-02 | Token firmado de vida corta (JWT, ~15-60 min) con secreto desde `.env` | Robo o falsificación de sesión |
+| RS-02 | Access token JWT de **30 min** + refresh token de **7 días** guardado en BD como hash SHA-256, con rotación y detección de reuso | Robo o falsificación de sesión |
 | RS-03 | Token en cookie `HttpOnly` + `Secure` + `SameSite=Strict` (preferido) en lugar de `localStorage` | XSS que roba el token |
 | RS-04 | Rate limiting en `/auth/login` (p. ej. 5 intentos/min por IP) | Fuerza bruta |
 | RS-05 | Mensaje de error genérico ("credenciales inválidas") y tiempo constante | Enumeración de usuarios |
@@ -104,7 +104,8 @@ En 2 horas, levantar servicios desplegados por separado (contenedores, red, serv
 |--------|----------|------|-------------|------------|
 | GET | `/api/v1/health` | No | Estado del servicio | 200 |
 | POST | `/api/v1/auth/login` | No | `{email, password}` → emite token (cookie) + datos básicos del usuario | 200, 400, 401, 429 |
-| POST | `/api/v1/auth/logout` | Sí | Invalida la cookie | 204 |
+| POST | `/api/v1/auth/refresh` | No (cookie de refresh) | Rota el refresh token y emite un access token nuevo | 200, 401 |
+| POST | `/api/v1/auth/logout` | No (funciona con access vencido) | Revoca la sesión en BD y borra las cookies | 204 |
 | GET | `/api/v1/auth/me` | Sí | Usuario actual; con esto se restaura la sesión tras un reload | 200, 401 |
 | GET | `/api/v1/users?search=&page=1&pageSize=10&role=&status=` | Sí | Lista paginada y filtrada | 200, 400, 401 |
 | GET | `/api/v1/metrics/summary` | Sí | `{totalUsers, activeUsers, admins, newThisMonth}` | 200, 401 |

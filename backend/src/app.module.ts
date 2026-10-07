@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module.js';
 import { envValidationSchema } from './config/env.validation.js';
 import { HealthModule } from './health/health.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -40,7 +41,9 @@ import { UsersModule } from './users/users.module.js';
     }),
     HealthModule,
     UsersModule,
+    AuthModule,
   ],
+  // Global guards: rate limiting here, JWT authentication in AuthModule.
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
