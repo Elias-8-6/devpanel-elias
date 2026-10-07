@@ -36,7 +36,15 @@ export function useApiQuery<T>(
       .then((data) => setSettled({ data, error: null, fetcher, reloadToken }))
       .catch((err: unknown) => {
         if (isAbortError(err)) return
-        setSettled((prev) => ({ data: prev.data, error: asApiError(err), fetcher, reloadToken }))
+        // Keep the previous data only if it answered this same query (a failed
+        // reload). Data from other parameters must not be shown as this
+        // query's result next to its error.
+        setSettled((prev) => ({
+          data: prev.fetcher === fetcher ? prev.data : null,
+          error: asApiError(err),
+          fetcher,
+          reloadToken,
+        }))
       })
     return () => controller.abort()
   }, [fetcher, reloadToken])

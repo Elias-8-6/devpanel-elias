@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -17,8 +18,14 @@ export default defineConfig({
     watch: process.env.VITE_USE_POLLING === 'true' ? { usePolling: true } : undefined,
     proxy: {
       // xfwd appends the real client IP to X-Forwarded-For; the backend
-      // trusts exactly this one hop, so values sent by the client are ignored.
+      // trusts only this proxy, so values sent by the client are ignored.
       '/api': { target: apiTarget, changeOrigin: true, xfwd: true },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.{ts,tsx}'],
+    // Lets Testing Library unmount between tests automatically.
+    globals: true,
   },
 })

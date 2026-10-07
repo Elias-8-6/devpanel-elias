@@ -2,9 +2,10 @@
 // - Same-origin requests (Vite proxies /api), so the HttpOnly session
 //   cookies travel automatically and JS never touches a token.
 // - On 401, refreshes the session once and retries the request.
-// - Concurrent 401s share a single refresh call: the backend rotates refresh
-//   tokens and treats a reused one as theft, so parallel refreshes would
-//   log the user out.
+// - Refreshes never run in parallel, neither within a tab (shared promise)
+//   nor across tabs (Web Locks): the backend rotates refresh tokens and
+//   treats a reused one as theft, so two tabs refreshing with the same
+//   cookie would log the user out everywhere.
 
 const API_BASE = '/api/v1'
 
@@ -61,18 +62,26 @@ export function onSessionExpired(listener: () => void): () => void {
   }
 }
 
+const REFRESH_LOCK = 'devpanel:auth-refresh'
 let refreshInFlight: Promise<boolean> | null = null
 
+// Serializes `task` across every tab of this origin. A tab that waited for
+// the lock sends the refresh cookie the previous tab just rotated (the cookie
+// jar is shared and read at send time), so it's a valid rotation, not reuse.
+function withCrossTabLock<T>(task: () => Promise<T>): Promise<T> {
+  return typeof navigator !== 'undefined' && navigator.locks
+    ? navigator.locks.request(REFRESH_LOCK, task)
+    : task()
+}
+
 function refreshSession(): Promise<boolean> {
-  refreshInFlight ??= fetch(`${API_BASE}/auth/refresh`, {
-    method: 'POST',
-    credentials: 'same-origin',
+  refreshInFlight ??= withCrossTabLock(() =>
+    fetch(`${API_BASE}/auth/refresh`, { method: 'POST', credentials: 'same-origin' })
+      .then((res) => res.ok)
+      .catch(() => false),
+  ).finally(() => {
+    refreshInFlight = null
   })
-    .then((res) => res.ok)
-    .catch(() => false)
-    .finally(() => {
-      refreshInFlight = null
-    })
   return refreshInFlight
 }
 

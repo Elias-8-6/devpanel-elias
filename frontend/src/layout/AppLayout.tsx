@@ -7,12 +7,19 @@ import { Badge } from '../shared/components/Badge.tsx'
 export function AppLayout() {
   const { state, logout } = useAuth()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState<string | null>(null)
   // ProtectedRoute guarantees an authenticated user here.
   const user = state.status === 'authenticated' ? state.user : null
 
   async function handleLogout() {
     setLoggingOut(true)
-    await logout()
+    setLogoutError(null)
+    try {
+      await logout()
+    } catch {
+      setLogoutError('No se pudo cerrar la sesión. Inténtalo de nuevo.')
+      setLoggingOut(false)
+    }
   }
 
   return (
@@ -40,6 +47,15 @@ export function AppLayout() {
           )}
         </div>
       </header>
+
+      {logoutError && (
+        <p
+          role="alert"
+          className="bg-rose-50 px-4 py-2 text-center text-sm text-rose-700 ring-1 ring-rose-200"
+        >
+          {logoutError}
+        </p>
+      )}
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <Outlet />

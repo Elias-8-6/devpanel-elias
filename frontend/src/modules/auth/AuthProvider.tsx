@@ -35,13 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ status: 'authenticated', user })
   }, [])
 
+  // Only drops the local session once the server confirmed it. If the request
+  // fails, the HttpOnly cookies are still in the browser (JS can't delete
+  // them) and a reload would silently log the user back in, so pretending
+  // to be logged out would be misleading. The error propagates to the UI.
   const logout = useCallback(async () => {
-    try {
-      await authApi.logout()
-    } finally {
-      // Even if the request fails, the user asked to leave: drop local state.
-      setState({ status: 'anonymous', expired: false })
-    }
+    await authApi.logout()
+    setState({ status: 'anonymous', expired: false })
   }, [])
 
   const value = useMemo<AuthContextValue>(
