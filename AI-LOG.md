@@ -28,6 +28,11 @@ _Pendiente de justificar (React + NestJS + PostgreSQL + Docker)._
 - **Resultado:** JWT de 30 min y refresh opaco de 7 días en cookies HttpOnly; tabla `refresh_tokens` que guarda solo el hash SHA-256; rotación con detección de reuso; guard global con `@Public()`; filtro de errores uniforme; 6 tests e2e del flujo.
 - **Qué hice con eso:** el refresh token persistido en BD fue decisión mía; el plan inicial de la IA lo había dejado fuera del alcance. _Completar._
 
+### 3.5 Módulo de métricas
+- **Prompt:** "sí, sigue con el módulo metrics"
+- **Resultado:** `GET /api/v1/metrics/summary` (total, activos, admins, nuevos del mes en UTC). Compone `UsersService.countUsers()` sin acceder a la tabla. Test e2e que verifica que las métricas cuadran con los totales de `/users`.
+- **Qué hice con eso:** _pendiente_
+
 ## 4. Output de la IA rechazado o modificado
 - **`bcrypt` → `bcryptjs`:** npm 11 bloqueó los scripts de instalación nativos de `bcrypt`, que además fallaría al compilar en Alpine. Se cambió por la versión JS pura.
 - **Regex de acentos del seed:** el regex con el rango de diacríticos U+0300–U+036F (escrito con escapes `\u`) terminó guardado como caracteres combinantes invisibles. Funcionaba, pero no se podía leer ni revisar. Se reemplazó por `/\p{M}/gu`. El primer intento de corregirlo con `sed` perdió la barra invertida y rompió el build (el linter lo detectó).

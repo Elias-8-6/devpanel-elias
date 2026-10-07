@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module.js';
 import { envValidationSchema } from './config/env.validation.js';
 import { HealthModule } from './health/health.module.js';
+import { MetricsModule } from './metrics/metrics.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
@@ -42,6 +43,7 @@ import { UsersModule } from './users/users.module.js';
     HealthModule,
     UsersModule,
     AuthModule,
+    MetricsModule,
   ],
   // Global guards: rate limiting here, JWT authentication in AuthModule.
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
