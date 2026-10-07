@@ -20,8 +20,16 @@ docker compose up --build
 |----------|-----|
 | Frontend | http://localhost:5173 |
 | API | http://localhost:3000/api/v1/health |
-| Adminer (GUI de la BD) | http://localhost:8080 (sistema: PostgreSQL, servidor: `db`, usuario, contraseña y BD según `.env`) |
+| Adminer (GUI de la BD, opcional) | http://localhost:8080 (sistema: PostgreSQL, servidor: `db`, usuario, contraseña y BD según `.env`) |
 | PostgreSQL | `localhost:5432` |
+
+Adminer no arranca por defecto, porque da acceso total a la BD. Para levantarlo:
+
+```bash
+docker compose --profile tools up -d
+```
+
+> Todos los puertos se publican solo en `127.0.0.1`: no son accesibles desde la red local, porque las credenciales de desarrollo están en el repo. Los contenedores corren como usuario `node`, no como `root`.
 
 > **Adminer:** en el campo *Servidor* usa `db`, no `localhost:5432`. Adminer corre dentro de su propio contenedor, donde `localhost` es él mismo. `localhost:5432` solo sirve para clientes instalados en tu máquina (DBeaver, pgAdmin, psql).
 

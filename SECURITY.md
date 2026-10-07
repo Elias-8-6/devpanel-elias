@@ -26,7 +26,7 @@
 | ID | Severidad | Hallazgo | Evidencia | Estado |
 |----|-----------|----------|-----------|--------|
 | SEC-01 | **Alta** | El rate limit del login contaba por IP, pero detrás del proxy todos compartían la IP del proxy: **5 intentos fallidos de un atacante bloqueaban el login de todos los usuarios** (DoS) | Atacante 5×401 → admin con contraseña correcta recibía **429** | ✅ **Corregido** (§3) |
-| SEC-02 | **Alta** | PostgreSQL (`5432`) y Adminer (`8080`) publicados en `0.0.0.0` con credenciales que están en el repo público: cualquiera en la misma red (Wi-Fi) puede leer o modificar la BD, hashes incluidos | Desde la IP LAN: Adminer HTTP 200, puerto 5432 abierto | Pendiente |
+| SEC-02 | **Alta** | PostgreSQL (`5432`) y Adminer (`8080`) publicados en `0.0.0.0` con credenciales que están en el repo público: cualquiera en la misma red (Wi-Fi) puede leer o modificar la BD, hashes incluidos | Desde la IP LAN: Adminer HTTP 200, puerto 5432 abierto | ✅ **Corregido**: todos los puertos (también 5173, que tampoco debía estar expuesto) en `127.0.0.1`; Adminer bajo el perfil `tools`. Desde la LAN, los 4 puertos están cerrados |
 | SEC-03 | Media | El access token no se puede revocar: tras el logout, tras desactivar al usuario o tras detectar reuso del refresh, el JWT sigue siendo válido hasta 30 min | Token capturado antes del logout → `GET /users` **200** después del logout | Pendiente |
 | SEC-04 | Media | Sin autorización por rol (OWASP A01): cualquier usuario autenticado, incluido un `viewer`, ve el listado completo con emails y las métricas | No hay control de rol en `users`/`metrics` | Pendiente |
 | SEC-05 | Media | Nada impide arrancar en producción con configuración de desarrollo: `JWT_SECRET` de ejemplo (público), `COOKIE_SECURE=false`, `DB_SYNCHRONIZE=true` | El esquema Joi solo valida tipos y longitud | Pendiente |
@@ -34,7 +34,7 @@
 | SEC-07 | Media | Contadores del rate limit en memoria: se reinician con cada deploy y no se comparten entre réplicas (con N réplicas el límite real es N×) | Diseño | Pendiente (producción) |
 | SEC-08 | Baja | El bloqueo por cuenta (10 intentos / 15 min) permite que un atacante bloquee a propósito a una víctima durante 15 min | Diseño (trade-off aceptado) | Aceptado / mejorable |
 | SEC-09 | Baja | No hay registro de eventos de seguridad (logins fallidos, bloqueos, reuso de refresh) (OWASP A09) | Revisión | Pendiente |
-| SEC-10 | Baja | Los contenedores corren como `root` | `whoami` → `root` | Pendiente |
+| SEC-10 | Baja | Los contenedores corren como `root` | `whoami` → `root` | ✅ **Corregido**: `USER node`; `whoami` → `node` |
 | SEC-11 | Baja | No hay TLS en desarrollo. En producción las cookies `Secure` y HSTS requieren HTTPS | Diseño | Producción |
 | SEC-12 | Baja | Dos pestañas que refrescan a la vez disparan una falsa detección de reuso y cierran la sesión (disponibilidad) | Diseño | Pendiente |
 | SEC-13 | Info | bcrypt con costo 10. Para hardware de 2026 se recomienda 12, previa medición de la latencia del login | Revisión | Opcional |
@@ -55,9 +55,12 @@
 
 ## 4. Plan de corrección
 
-### Fase 1: inmediata (~15 min)
-1. **SEC-02:** publicar `db` y `adminer` solo en `127.0.0.1` y mover Adminer a un perfil opcional (`docker compose --profile tools up`).
-2. **SEC-10:** `USER node` en los Dockerfiles.
+### Fase 1: inmediata ✅ completada
+1. **SEC-02:** todos los puertos publicados solo en `127.0.0.1`; Adminer movido al perfil opcional `tools`.
+2. **SEC-10:** `USER node` en los Dockerfiles. Efectos colaterales que hubo que resolver:
+   - `dist` pasó a ser un volumen del contenedor, porque el usuario sin privilegios no podía borrar lo que root había escrito en el bind mount;
+   - `nest-cli.docker.json` desactiva `deleteOutDir`, porque un punto de montaje no se puede borrar;
+   - `tsBuildInfoFile` se movió dentro de `dist`, porque un `.tsbuildinfo` huérfano producía builds vacíos.
 
 ### Fase 2: robustez de la sesión y del acceso (~45 min)
 3. **SEC-03:** agregar al JWT el claim `sid` (id de la familia de refresh). El guard verifica en cada petición, con una consulta indexada, que la familia no esté revocada y que el usuario siga activo. El logout pasa a ser inmediato.

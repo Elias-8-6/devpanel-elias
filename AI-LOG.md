@@ -45,6 +45,12 @@ _Pendiente de justificar (React + NestJS + PostgreSQL + Docker)._
 
 ## 4. Output de la IA rechazado o modificado
 - **Rate limit del login (detectado al pedirle a la IA una evaluación de seguridad):** el `@Throttle` de 5/min por IP que la IA escribió en el módulo Auth parecía correcto y pasaba su propio test e2e, pero detrás del proxy de Vite todas las peticiones llegaban con la IP del contenedor del proxy. Resultado: un atacante bloqueaba el login de todos. El test no lo detectaba porque supertest no pasa por el proxy. Se rediseñó con IP real y límites por cuenta.
+- **Contenedores sin root (fase 1 de seguridad):** el `USER node` "simple" rompió el backend en cadena, y cada error lo destapó el anterior:
+  1. `EACCES` al borrar un `dist` creado por root en el bind mount;
+  2. `EBUSY` al mover `dist` a un volumen, porque Nest intenta borrar el directorio;
+  3. un build vacío (`Cannot find module dist/main`), causado por un `.tsbuildinfo` huérfano fuera de `dist`, que además era un bug latente del build en el host.
+
+  Cada paso se diagnosticó con los logs antes de cambiar nada.
 - **`bcrypt` → `bcryptjs`:** npm 11 bloqueó los scripts de instalación nativos de `bcrypt`, que además fallaría al compilar en Alpine. Se cambió por la versión JS pura.
 - **Regex de acentos del seed:** el regex con el rango de diacríticos U+0300–U+036F (escrito con escapes `\u`) terminó guardado como caracteres combinantes invisibles. Funcionaba, pero no se podía leer ni revisar. Se reemplazó por `/\p{M}/gu`. El primer intento de corregirlo con `sed` perdió la barra invertida y rompió el build (el linter lo detectó).
 - **`rows.map(UserResponseDto.fromEntity)`:** el linter lo marcó como método sin enlazar (`unbound-method`); se cambió por una arrow function.

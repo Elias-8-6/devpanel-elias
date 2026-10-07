@@ -1,3 +1,6 @@
+# Every port is published on 127.0.0.1 only: this is a development stack with
+# credentials committed in .env.example, so nothing may be reachable from the
+# local network (SECURITY.md, SEC-02).
 services:
   db:
     image: postgres:17-alpine
@@ -9,7 +12,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -19,13 +22,15 @@ services:
       retries: 10
 
   # Database GUI, same image and port as the official postgres Docker Hub example.
+  # Opt-in (full DB access through a browser): docker compose --profile tools up -d
   adminer:
     image: adminer
+    profiles: ["tools"]
     restart: unless-stopped
     environment:
       ADMINER_DEFAULT_SERVER: db
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       - db
 
@@ -42,12 +47,15 @@ services:
       # the client IP to X-Forwarded-For. Rate limits key on that IP.
       TRUST_PROXY_HOPS: 1
     ports:
-      # Loopback only: with TRUST_PROXY_HOPS=1, direct callers could spoof
-      # X-Forwarded-For, so the API must not be reachable from the network.
+      # Also required by TRUST_PROXY_HOPS=1: direct callers could otherwise
+      # spoof X-Forwarded-For.
       - "127.0.0.1:${BACKEND_HOST_PORT:-3000}:3000"
     volumes:
       - ./backend:/app
       - /app/node_modules
+      # Build output stays inside the container (owned by the non-root user)
+      # instead of being written into the host's bind-mounted folder.
+      - /app/dist
     depends_on:
       db:
         condition: service_healthy
@@ -58,7 +66,7 @@ services:
       API_PROXY_TARGET: http://backend:3000
       VITE_USE_POLLING: "true"
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
