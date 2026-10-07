@@ -11,6 +11,7 @@ import {
 import { UserRole, UserStatus } from '../user.enums.js';
 
 export const MAX_PAGE_SIZE = 50;
+export const MAX_PAGE = 100_000;
 
 export class ListUsersQueryDto {
   @IsOptional()
@@ -21,10 +22,13 @@ export class ListUsersQueryDto {
   @MaxLength(100)
   search?: string;
 
+  // Capped: without an upper bound, huge values (1e20 still passes IsInt)
+  // produce an invalid OFFSET and a 500 instead of a 400.
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(MAX_PAGE)
   page: number = 1;
 
   // Capped so a single request can't dump the whole table.

@@ -9,5 +9,8 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    // Decorators (class-transformer @Type, Nest DI) need the metadata polyfill
+    // that Nest normally loads at bootstrap.
+    setupFiles: ['reflect-metadata'],
   },
 });

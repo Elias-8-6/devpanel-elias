@@ -83,7 +83,9 @@ export class AuthController {
       this.setSessionCookies(res, session);
       return session.user;
     } catch (err: unknown) {
-      this.clearSessionCookies(res);
+      // Only a rejected token ends the session. A transient failure (DB down,
+      // 5xx) keeps the cookies so the client can retry with a still-valid token.
+      if (err instanceof UnauthorizedException) this.clearSessionCookies(res);
       throw err;
     }
   }

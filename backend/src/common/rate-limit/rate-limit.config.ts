@@ -1,6 +1,7 @@
 import { ExecutionContext, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { ThrottlerOptions } from '@nestjs/throttler';
+import { normalizeEmail } from '../utils/normalize-email.js';
 
 const MINUTE_MS = 60_000;
 const IS_LOGIN_ROUTE = 'rateLimit:login';
@@ -16,15 +17,13 @@ const isNotLoginRoute = (context: ExecutionContext): boolean =>
 const clientIp = (req: Record<string, unknown>): string =>
   typeof req.ip === 'string' ? req.ip : 'unknown';
 
-// Account targeted by the attempt. Normalized like UsersService does, and
-// capped so arbitrary payloads can't create huge keys.
-const attemptedEmail = (req: Record<string, unknown>): string => {
+// Account targeted by the attempt. Normalized exactly like the DB lookup
+// (shared helper) and capped so arbitrary payloads can't create huge keys.
+export const attemptedEmail = (req: Record<string, unknown>): string => {
   const body = req.body;
   if (typeof body !== 'object' || body === null) return '-';
   const email: unknown = (body as Record<string, unknown>).email;
-  return typeof email === 'string'
-    ? email.trim().toLowerCase().slice(0, 254)
-    : '-';
+  return typeof email === 'string' ? normalizeEmail(email).slice(0, 254) : '-';
 };
 
 export interface RateLimitSettings {

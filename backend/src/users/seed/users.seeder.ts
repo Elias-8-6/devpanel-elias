@@ -5,9 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { BCRYPT_COST } from '../../common/security.constants.js';
+import { normalizeEmail } from '../../common/utils/normalize-email.js';
 import { User } from '../user.entity.js';
 import { UserRole, UserStatus } from '../user.enums.js';
-import { UsersService } from '../users.service.js';
 
 const DEMO_USERS = 50;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -65,7 +65,7 @@ export class UsersSeeder implements OnApplicationBootstrap {
     if (this.config.get<string>('NODE_ENV') === 'production') return;
     if ((await this.users.count()) > 0) return;
 
-    const adminEmail = UsersService.normalizeEmail(
+    const adminEmail = normalizeEmail(
       this.config.getOrThrow<string>('SEED_ADMIN_EMAIL'),
     );
     const adminHash = await bcrypt.hash(

@@ -6,6 +6,7 @@ import {
   paginate,
 } from '../common/dto/paginated-response.dto.js';
 import { escapeLike } from '../common/utils/escape-like.js';
+import { normalizeEmail } from '../common/utils/normalize-email.js';
 import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 import { UserResponseDto } from './dto/user-response.dto.js';
 import { User } from './user.entity.js';
@@ -25,17 +26,13 @@ export class UsersService {
     @InjectRepository(User) private readonly users: Repository<User>,
   ) {}
 
-  static normalizeEmail(email: string): string {
-    return email.trim().toLowerCase();
-  }
-
   // The only method that loads the password hash; reserved for Auth.
   findByEmailWithPassword(email: string): Promise<User | null> {
     return this.users
       .createQueryBuilder('user')
       .addSelect('user.passwordHash')
       .where('user.email = :email', {
-        email: UsersService.normalizeEmail(email),
+        email: normalizeEmail(email),
       })
       .getOne();
   }
