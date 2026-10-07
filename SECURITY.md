@@ -36,7 +36,7 @@
 | SEC-09 | Baja | No hay registro de eventos de seguridad (logins fallidos, bloqueos, reuso de refresh) (OWASP A09) | Revisión | Pendiente |
 | SEC-10 | Baja | Los contenedores corren como `root` | `whoami` → `root` | ✅ **Corregido**: `USER node`; `whoami` → `node` |
 | SEC-11 | Baja | No hay TLS en desarrollo. En producción las cookies `Secure` y HSTS requieren HTTPS | Diseño | Producción |
-| SEC-12 | Baja | Dos pestañas que refrescan a la vez disparan una falsa detección de reuso y cierran la sesión (disponibilidad) | Diseño | Pendiente |
+| SEC-12 | Media *(subida por el code review)* | Dos pestañas que refrescan a la vez disparan una falsa detección de reuso y cierran la sesión. Con varias pestañas abiertas pasa cada 30 min | Test que reproduce el bug con dos instancias del cliente | ✅ **Corregido**: el refresh se serializa entre pestañas con Web Locks, sin debilitar la detección de reuso en el backend |
 | SEC-13 | Info | bcrypt con costo 10. Para hardware de 2026 se recomienda 12, previa medición de la latencia del login | Revisión | Opcional |
 
 ## 3. Rate limiting implementado (SEC-01)

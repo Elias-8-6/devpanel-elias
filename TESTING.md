@@ -1,6 +1,16 @@
 # Plan de pruebas: DevPanel
 
-> Fecha: 2026-10-07 · Alcance: pruebas unitarias e de integración del backend (NestJS) y del frontend (React).
+> Fecha: 2026-10-07 · Alcance: pruebas unitarias y de integración del backend (NestJS) y del frontend (React).
+
+## Avance
+
+| Capa | Al escribir el plan | Ahora | Qué se agregó |
+|------|--------------------|-------|---------------|
+| Backend unit | 4 | **22** | DTOs de login y listado, cookies del refresh, clave del rate limit |
+| Backend integración | 11 | **15** | Suite de usuarios: tope de `page`, comodines y SQL literales, sin `password` |
+| Frontend | 0 | **15** | Runner instalado (I-5). `lib/api` (refresh entre pestañas, single-flight, `Retry-After`), `useApiQuery`, `AuthProvider`, `AppLayout` |
+
+Estas pruebas nacieron de corregir los hallazgos del code review. Lo pendiente sigue el orden del §9, empezando por la infraestructura de BD aislada (I-1 a I-4).
 
 ## 1. Punto de partida
 

@@ -27,10 +27,12 @@ Mini panel de administración (prueba técnica, 2 horas). El plan completo y los
 ## Convenciones de código
 - Prohibido `any`. Usar `unknown` y estrechar el tipo.
 - Backend: imports relativos con extensión `.js` (ESM nodenext), comillas simples, Prettier.
-- Frontend: el cliente HTTP usa rutas relativas `/api/...` (Vite hace el proxy) y `credentials: 'include'`.
+- Frontend: el cliente HTTP usa rutas relativas `/api/...` (Vite hace el proxy, así que todo es mismo origen) y `credentials: 'same-origin'`. No usar `'include'`: enviaría las cookies a cualquier origen al que se haga fetch.
+- Frontend: el refresh de sesión pasa siempre por `refreshSession()` en `lib/api.ts`, que lo serializa dentro de la pestaña y entre pestañas (Web Locks). Nunca llamar a `/auth/refresh` directamente.
+- Toda corrección va con un test que falle sin ella.
 - Commits pequeños por bloque del plan (Conventional Commits).
 
 ## Comandos
-- Todo: `docker compose up --build`
-- Backend: `npm run start:dev`, `npm run lint`, `npm test`, `npm run test:e2e`
-- Frontend: `npm run dev`, `npm run build`, `npm run lint`
+- Todo: `docker compose up --build` (Adminer: `docker compose --profile tools up -d`)
+- Backend: `npm run start:dev`, `npm run lint`, `npm test` (unitarias), `npm run test:e2e` (integración, requiere la BD levantada)
+- Frontend: `npm run dev`, `npm run build`, `npm run lint`, `npm test`

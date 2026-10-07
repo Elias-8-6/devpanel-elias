@@ -43,7 +43,19 @@ _Pendiente de justificar (React + NestJS + PostgreSQL + Docker)._
 - **Resultado:** al reproducir el ataque, se vio que el límite que la propia IA había implementado antes (5/min por IP) era un **DoS**: detrás del proxy todos compartían una IP y 5 intentos de un atacante bloqueaban al admin. Se reemplazó por límites en capas (IP+cuenta, IP, cuenta) con la IP real y un único proxy de confianza, más `Retry-After`. `SECURITY.md` documenta 13 hallazgos con evidencia y un plan en 4 fases.
 - **Qué hice con eso:** _pendiente_
 
+### 3.8 Code review y correcciones
+- **Prompt:** `/code-review` sobre todo el repo (relanzado apuntando a la carpeta del proyecto, porque la primera vez corrió en `C:\WINDOWS\System32` y no encontró nada). Después: "sí, opción a" (corregir los hallazgos, cada uno con su test).
+- **Resultado:** 10 hallazgos. La IA verificó en vivo dos de ellos antes de aceptarlos: `page=1e20` → 500, y la falsificación de IP llamando directo a la API. Se corrigieron 9; el 10.º (cookies `Secure` en producción) quedó en la fase 2 de seguridad. Para el #8 la IA no cambió el código sino `CLAUDE.md`, porque el código era el correcto y la convención estaba mal.
+- **Qué hice con eso:** _pendiente_
+
 ## 4. Output de la IA rechazado o modificado
+- **Hallazgos del code review sobre código escrito por la IA:** varios eran errores de la propia IA que sus tests no veían:
+  - la confianza en "1 salto" del proxy permitía falsificar la IP;
+  - `@MaxLength(72)` contaba caracteres y no bytes, a pesar de que el comentario afirmaba lo contrario;
+  - el logout fingía cerrar la sesión cuando fallaba, aunque las cookies seguían vigentes;
+  - con dos pestañas, la sesión se cerraba cada 30 min.
+
+  Cada corrección se acompañó de un test que falla sin ella. En el caso de las pestañas, el test reproduce primero el bug.
 - **Rate limit del login (detectado al pedirle a la IA una evaluación de seguridad):** el `@Throttle` de 5/min por IP que la IA escribió en el módulo Auth parecía correcto y pasaba su propio test e2e, pero detrás del proxy de Vite todas las peticiones llegaban con la IP del contenedor del proxy. Resultado: un atacante bloqueaba el login de todos. El test no lo detectaba porque supertest no pasa por el proxy. Se rediseñó con IP real y límites por cuenta.
 - **Contenedores sin root (fase 1 de seguridad):** el `USER node` "simple" rompió el backend en cadena, y cada error lo destapó el anterior:
   1. `EACCES` al borrar un `dist` creado por root en el bind mount;
