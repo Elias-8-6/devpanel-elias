@@ -11,8 +11,8 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 20_000,
     hookTimeout: 30_000,
-    // The test client plays the role of the single trusted proxy, so suites
-    // can simulate different client IPs with X-Forwarded-For.
-    env: { TRUST_PROXY_HOPS: '1' },
+    // The test client (loopback) plays the role of the trusted proxy, so
+    // suites can simulate different client IPs with X-Forwarded-For.
+    env: { TRUST_PROXY: '127.0.0.1' },
   },
 });

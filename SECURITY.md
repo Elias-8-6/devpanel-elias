@@ -49,8 +49,8 @@
 | `login-account` | 10 / 15 min, bloqueo de 15 min | email | Fuerza bruta distribuida (muchas IPs, una cuenta) |
 | `refresh` | 20 / min | IP | Abuso del endpoint de refresh |
 
-- **IP real del cliente:** el proxy agrega `X-Forwarded-For` y el backend confía en **exactamente un salto** (`TRUST_PROXY_HOPS=1`). Un `X-Forwarded-For` falsificado por el cliente se ignora; verificado: 6 intentos con IPs falsas distintas → bloqueado al 6.º.
-- **API solo en loopback** (`127.0.0.1`): con un salto de confianza, quien llegara directo a la API podría falsificar la IP.
+- **IP real del cliente:** el proxy agrega `X-Forwarded-For` y el backend confía **solo en la IP fija del contenedor del proxy** (`TRUST_PROXY=172.30.0.10`). Un `X-Forwarded-For` falsificado se ignora, tanto a través del proxy como llamando directo a la API. Verificado en ambos caminos: 6 intentos con IPs falsas distintas → bloqueado al 6.º.
+  - *La primera versión confiaba en "1 salto" y publicaba la API en loopback, suponiendo que eso bastaba. No bastaba: cualquier proceso del equipo podía falsificar la IP llamando directo al puerto. Lo detectó el code review (hallazgo #7).*
 - **Respuesta 429** con la cabecera estándar `Retry-After`; el login muestra "Inténtalo de nuevo en N s/min".
 
 ## 4. Plan de corrección
@@ -70,7 +70,7 @@
 ### Fase 3: antes de producción
 6. **SEC-06:** build estático servido por nginx con `Content-Security-Policy: default-src 'self'; frame-ancestors 'none'`, `X-Content-Type-Options: nosniff` y `Referrer-Policy`.
 7. **SEC-07:** contadores del rate limit en Redis.
-8. **SEC-11:** TLS en el reverse proxy, `COOKIE_SECURE=true`, `TRUST_PROXY_HOPS` según la topología real.
+8. **SEC-11:** TLS en el reverse proxy, `COOKIE_SECURE=true`, `TRUST_PROXY` con la IP o subred del reverse proxy real.
 9. **SEC-09:** log estructurado de eventos de seguridad (login fallido, bloqueo, reuso de refresh, logout).
 10. Migraciones de TypeORM en lugar de `synchronize`.
 

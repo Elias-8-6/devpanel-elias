@@ -68,7 +68,7 @@ Prioridad: **A** = protege seguridad o un requisito P0 · **B** = robustez · **
 | `ListUsersQueryDto` | Valores por defecto (`page = 1`, `pageSize = 10`); strings numéricos convertidos; `pageSize = 51` y `page = 0` → error; rol o estado inválido → error; `search` recortado y > 100 caracteres → error |
 | `LoginDto` | Email inválido, password vacío, password > 72 → error |
 | `UserResponseDto.fromEntity` | Una entidad con `passwordHash` y campos extra → **solo salen los 6 campos de la allowlist** |
-| `envValidationSchema` | `JWT_SECRET` < 32 → falla; defaults (30 min, 7 días, `TRUST_PROXY_HOPS = 0`); límites de `TRUST_PROXY_HOPS` |
+| `envValidationSchema` | `JWT_SECRET` < 32 → falla; defaults (30 min, 7 días, `TRUST_PROXY = 0`); `TRUST_PROXY` acepta un número de saltos o una IP/CIDR y rechaza `true` |
 
 ### Usuarios y métricas (B)
 | Unidad | Casos |

@@ -10,10 +10,10 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 export function configureApp(app: NestExpressApplication): void {
   const config = app.get(ConfigService);
 
-  // Number of reverse proxies in front of the API (0 = connect directly).
-  // Rate limiting keys on req.ip, so this must match the real topology:
-  // trusting more hops than exist lets clients spoof X-Forwarded-For.
-  app.set('trust proxy', config.getOrThrow<number>('TRUST_PROXY_HOPS'));
+  // Which peers may set X-Forwarded-For: the proxy's IP/CIDR (preferred) or a
+  // hop count (0 = no proxy). Rate limiting keys on req.ip, so trusting a
+  // peer that isn't the proxy lets that caller choose its own IP.
+  app.set('trust proxy', config.getOrThrow<number | string>('TRUST_PROXY'));
 
   app.use(helmet());
   app.use(cookieParser());

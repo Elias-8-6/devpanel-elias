@@ -143,7 +143,7 @@ describe('Auth (e2e)', () => {
       const req = http()
         .post('/api/v1/auth/login')
         .send({ email, password: 'wrong-password' });
-      // TRUST_PROXY_HOPS=1 in the e2e env: the test client acts as the proxy.
+      // TRUST_PROXY=127.0.0.1 in the e2e env: the test client is the proxy.
       return ip ? req.set('X-Forwarded-For', ip) : req;
     };
 
