@@ -18,8 +18,16 @@ _Pendiente de justificar (React + NestJS + PostgreSQL + Docker)._
 - **Resultado:** scaffolds de Nest y Vite, docker-compose (db, adminer:8080, backend, frontend), validación de entorno y capa de seguridad base.
 - **Qué hice con eso:** _pendiente_
 
+### 3.3 Módulo de usuarios
+- **Prompt:** "comencemos a trabajar en el modulo de user" (después de validar con la IA el modelo de datos: una sola entidad `users`, con rol y estado como enums).
+- **Resultado:** entidad `User`, `UsersService` exportado como contrato SOA, `GET /api/v1/users` con búsqueda, filtros y paginación, y un seed idempotente.
+- **Qué hice con eso:** _pendiente_
+
 ## 4. Output de la IA rechazado o modificado
-- _Pendiente._
+- **`bcrypt` → `bcryptjs`:** npm 11 bloqueó los scripts de instalación nativos de `bcrypt`, que además fallaría al compilar en Alpine. Se cambió por la versión JS pura.
+- **Regex de acentos del seed:** el regex `[̀-ͯ]` terminó guardado como caracteres combinantes invisibles. Funcionaba, pero no se podía leer ni revisar. Se reemplazó por `/\p{M}/gu`. El primer intento de corregirlo con `sed` perdió la barra invertida y rompió el build (el linter lo detectó).
+- **`rows.map(UserResponseDto.fromEntity)`:** el linter lo marcó como método sin enlazar (`unbound-method`); se cambió por una arrow function.
+- _Pendiente: agregar los rechazos propios del desarrollador._
 
 ## 5. % de código IA vs propio
 _Pendiente._

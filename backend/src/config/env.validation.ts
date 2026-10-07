@@ -18,6 +18,9 @@ export const envValidationSchema = Joi.object({
   JWT_SECRET: Joi.string().min(32).required(),
   JWT_EXPIRES_IN: Joi.string().default('30m'),
 
+  SEED_ADMIN_EMAIL: Joi.string().email({ tlds: false }).required(),
+  SEED_ADMIN_PASSWORD: Joi.string().min(8).required(),
+
   CORS_ORIGIN: Joi.string().uri().required(),
   THROTTLE_TTL_MS: Joi.number().integer().positive().default(60_000),
   THROTTLE_LIMIT: Joi.number().integer().positive().default(100),

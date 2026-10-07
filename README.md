@@ -23,10 +23,18 @@ docker compose up --build
 | Adminer (GUI de la BD) | http://localhost:8080 (sistema: PostgreSQL, servidor: `db`, usuario, contraseña y BD según `.env`) |
 | PostgreSQL | `localhost:5432` |
 
+> **Adminer:** en el campo *Servidor* usa `db`, no `localhost:5432`. Adminer corre dentro de su propio contenedor, donde `localhost` es él mismo. `localhost:5432` solo sirve para clientes instalados en tu máquina (DBeaver, pgAdmin, psql).
+
 > Si el puerto 3000 está ocupado, cambia `BACKEND_HOST_PORT` en `.env`. El frontend no se ve afectado.
 
 ## Credenciales de prueba
-_Pendiente: se definen con el seed._
+Al primer arranque, el seed crea automáticamente un administrador y 50 usuarios de demostración (solo si la tabla está vacía y nunca en producción).
+
+| Email | Password |
+|-------|----------|
+| `admin@devpanel.local` | `DevPanel#2026` |
+
+Se configuran con `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` en `.env`. Los usuarios de demostración tienen una contraseña aleatoria que no se revela: sirven para poblar la tabla, no para iniciar sesión.
 
 ## Decisiones técnicas
 _Pendiente._
