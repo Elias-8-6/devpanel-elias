@@ -33,11 +33,18 @@ _Pendiente de justificar (React + NestJS + PostgreSQL + Docker)._
 - **Resultado:** `GET /api/v1/metrics/summary` (total, activos, admins, nuevos del mes en UTC). Compone `UsersService.countUsers()` sin acceder a la tabla. Test e2e que verifica que las métricas cuadran con los totales de `/users`.
 - **Qué hice con eso:** _pendiente_
 
+### 3.6 Frontend
+- **Prompt:** "crea el frontend de la app, para los módulos correspondientes"
+- **Resultado:** React por módulos (`auth`, `metrics`, `users`), un cliente HTTP con refresh único y reintento, rutas protegidas, dashboard con 4 tarjetas, tabla con búsqueda con debounce, filtros y paginación. Probado en Chrome: redirección sin sesión, error de credenciales, login, recarga con la sesión intacta, una sola petición por búsqueda, logout y JS sin acceso a los tokens (`document.cookie` vacío).
+- **Qué hice con eso:** _pendiente_
+
 ## 4. Output de la IA rechazado o modificado
 - **`bcrypt` → `bcryptjs`:** npm 11 bloqueó los scripts de instalación nativos de `bcrypt`, que además fallaría al compilar en Alpine. Se cambió por la versión JS pura.
 - **Regex de acentos del seed:** el regex con el rango de diacríticos U+0300–U+036F (escrito con escapes `\u`) terminó guardado como caracteres combinantes invisibles. Funcionaba, pero no se podía leer ni revisar. Se reemplazó por `/\p{M}/gu`. El primer intento de corregirlo con `sed` perdió la barra invertida y rompió el build (el linter lo detectó).
 - **`rows.map(UserResponseDto.fromEntity)`:** el linter lo marcó como método sin enlazar (`unbound-method`); se cambió por una arrow function.
 - **`#` en `.env` (bug detectado por los tests e2e):** `SEED_ADMIN_PASSWORD=DevPanel#2026` sin comillas lo lee completo Docker Compose, pero dotenv lo corta en `DevPanel` porque trata `#` como comentario. Corriendo fuera de Docker, el admin habría quedado con otra contraseña. Se citó el valor y se verificó que ambos parsers lean lo mismo.
+- **`setLoading(true)` dentro de un efecto:** el primer `useApiQuery` lo hacía y oxlint lo marcó (`set-state-in-effect`, renders en cascada). Se reescribió para derivar `loading` durante el render, comparando qué petición respondió el último resultado.
+- **Spinner con clases en conflicto:** el botón de login le pasaba colores que chocaban con los fijos del componente. Se reemplazó por una prop `tone` explícita.
 - **Comentario falso sobre el orden de los guards:** la IA escribió que el ThrottlerGuard "corre antes" que el guard JWT. Nest no garantiza ese orden entre `APP_GUARD` de módulos distintos, así que se eliminó la afirmación en lugar de dejar documentación incorrecta.
 - _Pendiente: agregar los rechazos propios del desarrollador._
 
