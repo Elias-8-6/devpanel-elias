@@ -16,7 +16,9 @@ export default defineConfig({
     // File events from Windows bind mounts don't reach the container reliably.
     watch: process.env.VITE_USE_POLLING === 'true' ? { usePolling: true } : undefined,
     proxy: {
-      '/api': { target: apiTarget, changeOrigin: true },
+      // xfwd appends the real client IP to X-Forwarded-For; the backend
+      // trusts exactly this one hop, so values sent by the client are ignored.
+      '/api': { target: apiTarget, changeOrigin: true, xfwd: true },
     },
   },
 })

@@ -15,13 +15,22 @@ export class ApiError extends Error {
   readonly status: number
   readonly code: string
   readonly details: string[]
+  // From the Retry-After header on 429 responses.
+  readonly retryAfterSeconds: number | null
 
-  constructor(status: number, code: string, message: string, details: string[] = []) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    details: string[] = [],
+    retryAfterSeconds: number | null = null,
+  ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
     this.details = details
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 
@@ -102,7 +111,14 @@ async function toApiError(res: Response): Promise<ApiError> {
   const details = Array.isArray(error?.details)
     ? error.details.filter((d): d is string => typeof d === 'string')
     : []
-  return new ApiError(res.status, code, message, details)
+  const retryAfter = Number(res.headers.get('Retry-After'))
+  return new ApiError(
+    res.status,
+    code,
+    message,
+    details,
+    Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : null,
+  )
 }
 
 async function execute(path: string, options: RequestOptions): Promise<Response> {

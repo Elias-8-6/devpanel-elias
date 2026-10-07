@@ -12,6 +12,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
+import { LoginRateLimit } from '../common/rate-limit/rate-limit.config.js';
 import { UserResponseDto } from '../users/dto/user-response.dto.js';
 import {
   ACCESS_COOKIE,
@@ -49,7 +50,8 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: MINUTE_MS } })
+  // Per IP+account, per IP and per account limits (rate-limit.config.ts).
+  @LoginRateLimit()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(

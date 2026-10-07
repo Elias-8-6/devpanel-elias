@@ -38,7 +38,13 @@ _Pendiente de justificar (React + NestJS + PostgreSQL + Docker)._
 - **Resultado:** React por módulos (`auth`, `metrics`, `users`), un cliente HTTP con refresh único y reintento, rutas protegidas, dashboard con 4 tarjetas, tabla con búsqueda con debounce, filtros y paginación. Probado en Chrome: redirección sin sesión, error de credenciales, login, recarga con la sesión intacta, una sola petición por búsqueda, logout y JS sin acceso a los tokens (`document.cookie` vacío).
 - **Qué hice con eso:** _pendiente_
 
+### 3.7 Rate limiting y evaluación de seguridad
+- **Prompt:** "quiero que implementes un límite a las peticiones por minuto, principalmente para el login, y que evalúes la seguridad y a qué ataques la app está propensa y crees un plan para hacer correcciones"
+- **Resultado:** al reproducir el ataque, se vio que el límite que la propia IA había implementado antes (5/min por IP) era un **DoS**: detrás del proxy todos compartían una IP y 5 intentos de un atacante bloqueaban al admin. Se reemplazó por límites en capas (IP+cuenta, IP, cuenta) con la IP real y un único proxy de confianza, más `Retry-After`. `SECURITY.md` documenta 13 hallazgos con evidencia y un plan en 4 fases.
+- **Qué hice con eso:** _pendiente_
+
 ## 4. Output de la IA rechazado o modificado
+- **Rate limit del login (detectado al pedirle a la IA una evaluación de seguridad):** el `@Throttle` de 5/min por IP que la IA escribió en el módulo Auth parecía correcto y pasaba su propio test e2e, pero detrás del proxy de Vite todas las peticiones llegaban con la IP del contenedor del proxy. Resultado: un atacante bloqueaba el login de todos. El test no lo detectaba porque supertest no pasa por el proxy. Se rediseñó con IP real y límites por cuenta.
 - **`bcrypt` → `bcryptjs`:** npm 11 bloqueó los scripts de instalación nativos de `bcrypt`, que además fallaría al compilar en Alpine. Se cambió por la versión JS pura.
 - **Regex de acentos del seed:** el regex con el rango de diacríticos U+0300–U+036F (escrito con escapes `\u`) terminó guardado como caracteres combinantes invisibles. Funcionaba, pero no se podía leer ni revisar. Se reemplazó por `/\p{M}/gu`. El primer intento de corregirlo con `sed` perdió la barra invertida y rompió el build (el linter lo detectó).
 - **`rows.map(UserResponseDto.fromEntity)`:** el linter lo marcó como método sin enlazar (`unbound-method`); se cambió por una arrow function.

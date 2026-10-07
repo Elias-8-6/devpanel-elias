@@ -25,6 +25,7 @@ export const envValidationSchema = Joi.object({
   SEED_ADMIN_PASSWORD: Joi.string().min(8).required(),
 
   CORS_ORIGIN: Joi.string().uri().required(),
+  TRUST_PROXY_HOPS: Joi.number().integer().min(0).max(5).default(0),
   THROTTLE_TTL_MS: Joi.number().integer().positive().default(60_000),
   THROTTLE_LIMIT: Joi.number().integer().positive().default(100),
 });

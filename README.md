@@ -39,9 +39,11 @@ Se configuran con `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` en `.env`. Los usua
 ## Decisiones técnicas
 - **SOA dentro de un monolito modular:** servicios `auth`, `users`, `metrics` y `health` con contratos REST en `/api/v1`. Se comunican entre sí solo a través de sus servicios exportados.
 - **Sesión:** access token JWT de 30 min y refresh token de 7 días, ambos en cookies `HttpOnly` + `SameSite=Strict`. El refresh se guarda en BD solo como hash SHA-256, es de un solo uso y reusarlo revoca la sesión completa.
-- **Seguro por defecto:** guard JWT global (las rutas públicas se marcan con `@Public()`), validación estricta de entradas, rate limit (login: 5/min) y formato de error uniforme `{ error: { code, message } }`.
+- **Seguro por defecto:** guard JWT global (las rutas públicas se marcan con `@Public()`), validación estricta de entradas y formato de error uniforme `{ error: { code, message } }`.
+- **Rate limit en capas para el login:** por IP + cuenta (5/min), por IP (20/min) y por cuenta (10 cada 15 min), con la IP real tomada detrás de un único proxy de confianza. Detalle y evaluación completa de seguridad en [SECURITY.md](SECURITY.md).
 
 ## Limitaciones conocidas
-- El rate limit se guarda en memoria y se aplica por IP. Detrás del proxy de Vite todos los clientes comparten la IP del proxy; en producción haría falta `trust proxy` y un almacenamiento compartido (Redis).
+- Hay hallazgos de seguridad pendientes con plan de corrección en [SECURITY.md](SECURITY.md), entre ellos que el access token no se revoca hasta que expira y que no hay autorización por rol.
+- Los contadores del rate limit viven en memoria: se reinician con cada deploy y no se comparten entre réplicas (en producción irían a Redis).
 - Si dos pestañas refrescan la sesión con el mismo token al mismo tiempo, la detección de reuso cierra la sesión. El frontend debe serializar el refresh.
 - Las tablas se crean con `synchronize` de TypeORM (solo desarrollo); no hay migraciones.

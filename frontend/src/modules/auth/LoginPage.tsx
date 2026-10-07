@@ -1,15 +1,26 @@
 import { type FormEvent, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { asApiError } from '../../lib/api.ts'
+import { type ApiError, asApiError } from '../../lib/api.ts'
 import { Spinner } from '../../shared/components/Spinner.tsx'
 import type { LoginLocationState } from './routes.tsx'
 import { useAuth } from './useAuth.ts'
 
 const ERROR_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS: 'Email o contraseña incorrectos.',
-  TOO_MANY_REQUESTS: 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.',
   VALIDATION_ERROR: 'Revisa el formato del email y la contraseña.',
   NETWORK_ERROR: 'No se pudo conectar con el servidor.',
+}
+
+const waitText = (seconds: number): string =>
+  seconds < 60 ? `${seconds} s` : `${Math.ceil(seconds / 60)} min`
+
+function loginErrorMessage(err: ApiError): string {
+  if (err.code === 'TOO_MANY_REQUESTS') {
+    return err.retryAfterSeconds
+      ? `Demasiados intentos. Inténtalo de nuevo en ${waitText(err.retryAfterSeconds)}.`
+      : 'Demasiados intentos. Inténtalo más tarde.'
+  }
+  return ERROR_MESSAGES[err.code] ?? err.message
 }
 
 // Only redirect to paths inside the app (avoids open redirects via state).
@@ -35,8 +46,7 @@ export function LoginPage() {
       await login(email.trim(), password)
       navigate(safeRedirect(locationState.from), { replace: true })
     } catch (err: unknown) {
-      const apiError = asApiError(err)
-      setError(ERROR_MESSAGES[apiError.code] ?? apiError.message)
+      setError(loginErrorMessage(asApiError(err)))
       setSubmitting(false)
     }
   }
